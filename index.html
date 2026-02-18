@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal | Search</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #4f46e5;       /* Indigo */
+            --primary-hover: #4338ca;
+            --bg: #ffffff;
+            --surface: #ffffff;
+            --text-main: #111827;
+            --text-sub: #6b7280;
+            --border: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            /* Subtle dot pattern for aesthetics */
+            background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        /* ─── HEADER & SEARCH ─── */
+        .hero-section {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            margin-bottom: 50px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #111827, #4f46e5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle { color: var(--text-sub); margin-bottom: 30px; font-size: 1rem; }
+
+        .search-container {
+            position: relative;
+            width: 100%;
+            background: white;
+            border-radius: 50px;
+            box-shadow: var(--shadow-lg);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            border: 1px solid var(--border);
+        }
+
+        .search-container:focus-within {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+
+        .search-icon { padding-left: 20px; color: #9ca3af; font-size: 1.2rem; }
+
+        input {
+            flex: 1;
+            border: none;
+            padding: 15px 15px;
+            font-size: 1rem;
+            outline: none;
+            background: transparent;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .status-badge {
+            margin-top: 15px;
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            background: #f3f4f6;
+            color: var(--text-sub);
+        }
+
+        /* ─── GRID LAYOUT ─── */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        /* ─── CARD DESIGN ─── */
+        .card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.5s forwards;
+            cursor: default; /* Button handles click */
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .initial-circle {
+            width: 48px; height: 48px;
+            background: #e0e7ff;
+            color: var(--primary);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 1.25rem;
+        }
+
+        .card-content h3 { font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px; }
+        .card-content p { font-size: 0.875rem; color: var(--text-sub); }
+
+        .info-row {
+            display: flex; justify-content: space-between;
+            font-size: 0.875rem; color: var(--text-sub);
+            margin-bottom: 8px;
+        }
+        .info-row b { color: var(--text-main); font-weight: 600; }
+
+        /* Aesthetic Button on Card */
+        .btn-view {
+            width: 100%;
+            margin-top: 20px;
+            padding: 10px 0;
+            background: var(--text-main);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+        .btn-view:hover { background: var(--primary); }
+
+        /* ─── MODAL ─── */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 50;
+            display: none; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.2s;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+
+        .modal-card {
+            background: white;
+            width: 90%; max-width: 500px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            padding: 30px;
+            border: 1px solid var(--border);
+            transform: scale(0.95); transition: transform 0.2s;
+        }
+        .modal-overlay.active .modal-card { transform: scale(1); }
+
+        .modal-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 25px; }
+        .modal-close {
+            background: #f3f4f6; border: none; width: 32px; height: 32px;
+            border-radius: 50%; cursor: pointer; color: var(--text-sub);
+            transition: 0.2s;
+        }
+        .modal-close:hover { background: #e5e7eb; color: var(--text-main); }
+
+        .detail-group { margin-bottom: 20px; }
+        .detail-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-sub); margin-bottom: 5px; font-weight: 600; }
+        .detail-value { font-size: 1rem; color: var(--text-main); font-weight: 500; border-bottom: 1px solid #f3f4f6; padding-bottom: 5px; }
+
+        .marks-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            background: #f9fafb; padding: 15px; border-radius: 12px;
+            margin-top: 10px;
+        }
+        .mark-pill {
+            display: flex; justify-content: space-between;
+            font-size: 0.875rem;
+        }
+
+        /* ─── ANIMATIONS ─── */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="hero-section">
+        <h1>Student Results</h1>
+        <p class="subtitle">Search the database securely by name or scholar number.</p>
+        
+        <div class="search-container">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Type a name (e.g., Aarav)..." autocomplete="off">
+        </div>
+        
+        <div id="statusBadge" class="status-badge">⚡ Database Loading...</div>
+    </div>
+
+    <div id="cardsGrid" class="grid"></div>
+
+    <div id="modal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div>
+                    <h2 id="mName" style="font-size:1.5rem; margin-bottom:5px;">Student Name</h2>
+                    <span id="mId" style="background:#e0e7ff; color:var(--primary); padding:2px 8px; border-radius:6px; font-size:0.8rem; font-weight:600;">Reg: 12345</span>
+                </div>
+                <button class="modal-close" onclick="closeModal(event)">✕</button>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                <div class="detail-group">
+                    <div class="detail-label">Father's Name</div>
+                    <div class="detail-value" id="mFather">-</div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-label">Mother's Name</div>
+                    <div class="detail-value" id="mMother">-</div>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                <div class="detail-group">
+                    <div class="detail-label">Class</div>
+                    <div class="detail-value" id="mClass">-</div>
+                </div>
+                <div class="detail-group">
+                    <div class="detail-label">Date of Birth</div>
+                    <div class="detail-value" id="mDob">-</div>
+                </div>
+            </div>
+
+            <div class="detail-group" style="margin-top:10px;">
+                <div class="detail-label">Academic Report</div>
+                <div class="marks-grid">
+                    <div class="mark-pill"><span>English</span><b id="mkEng">0</b></div>
+                    <div class="mark-pill"><span>Hindi</span><b id="mkHin">0</b></div>
+                    <div class="mark-pill"><span>Science</span><b id="mkSci">0</b></div>
+                    <div class="mark-pill"><span>Social Sc.</span><b id="mkSoc">0</b></div>
+                    <div class="mark-pill"><span>Maths</span><b id="mkMat">0</b></div>
+                    <div class="mark-pill"><span>IT</span><b id="mkIt">0</b></div>
+                </div>
+            </div>
+
+            <div style="margin-top:20px; background:var(--text-main); color:white; padding:15px; border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:0.9rem; font-weight:500;">Final Percentage</span>
+                <span id="mPct" style="font-size:1.5rem; font-weight:700;">0%</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ⚠️ CONFIGURATION: Your CSV Filename
+        const CSV_FILE = 'saintpaul_final_report_COMPLETE.csv';
+        let allStudents = [];
+
+        // 1. Initialize
+        Papa.parse(CSV_FILE, {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+                allStudents = results.data;
+                const status = document.getElementById('statusBadge');
+                status.innerText = `● Ready (${allStudents.length} Students)`;
+                status.style.color = '#059669'; // Green text
+                status.style.background = '#d1fae5'; // Green bg
+                
+                // Add listener
+                document.getElementById('searchInput').addEventListener('keyup', handleSearch);
+            },
+            error: function() {
+                const status = document.getElementById('statusBadge');
+                status.innerText = "❌ Error loading CSV file.";
+                status.style.color = 'red';
+            }
+        });
+
+        // 2. Search Logic
+        function handleSearch(e) {
+            const query = e.target.value.toLowerCase().trim();
+            const grid = document.getElementById('cardsGrid');
+            
+            if (!query) {
+                grid.innerHTML = '';
+                return;
+            }
+
+            const matches = allStudents.filter(s => 
+                (s['Name'] || '').toLowerCase().includes(query) || 
+                (s['Reg_No'] || '').includes(query)
+            ).slice(0, 50);
+
+            renderCards(matches);
+        }
+
+        // 3. Render Cards
+        function renderCards(students) {
+            const grid = document.getElementById('cardsGrid');
+            grid.innerHTML = '';
+
+            if (students.length === 0) {
+                grid.innerHTML = '<div style="text-align:center; width:100%; grid-column:1/-1; color:#9ca3af;">No students found.</div>';
+                return;
+            }
+
+            students.forEach((s, index) => {
+                const initial = (s['Name'] || '?').charAt(0);
+                const delay = index * 0.05; // Stagger effect
+
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.animationDelay = `${delay}s`;
+                
+                // Add click handler to the whole card for better UX, or just button
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="initial-circle">${initial}</div>
+                        <div style="text-align:right;">
+                            <span style="font-size:0.75rem; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">Percentage</span>
+                            <div style="font-size:1.25rem; font-weight:700; color:var(--primary);">${s['Percentage']}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-content">
+                        <h3>${s['Name']}</h3>
+                        <p style="margin-bottom:15px;">Reg No: ${s['Reg_No']}</p>
+                        
+                        <div class="info-row"><span>Class</span> <b>${s['Class_Section']}</b></div>
+                        <div class="info-row"><span>Father</span> <b>${s['Father_Name']}</b></div>
+                    </div>
+
+                    <button class="btn-view" onclick='openModal(${JSON.stringify(s).replace(/'/g, "&#39;")})'>
+                        View Report <span>→</span>
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // 4. Modal Logic
+        function openModal(s) {
+            // Populate
+            document.getElementById('mName').innerText = s['Name'];
+            document.getElementById('mId').innerText = `Reg: ${s['Reg_No']}`;
+            document.getElementById('mFather').innerText = s['Father_Name'];
+            document.getElementById('mMother').innerText = s['Mother_Name'];
+            document.getElementById('mClass').innerText = s['Class_Section'];
+            document.getElementById('mDob').innerText = s['DOB'];
+            
+            // Marks
+            document.getElementById('mkEng').innerText = s['English_184'];
+            document.getElementById('mkHin').innerText = s['Hindi_085'];
+            document.getElementById('mkSci').innerText = s['Science_086'];
+            document.getElementById('mkSoc').innerText = s['Social_087'];
+            document.getElementById('mkMat').innerText = s['Math_041'];
+            document.getElementById('mkIt').innerText = s['IT_402'];
+            
+            // Total
+            document.getElementById('mPct').innerText = s['Percentage'];
+
+            // Show
+            const modal = document.getElementById('modal');
+            modal.classList.add('active');
+        }
+
+        function closeModal(e) {
+            if (e.target === document.getElementById('modal') || e.target.classList.contains('modal-close')) {
+                document.getElementById('modal').classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>
