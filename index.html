@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Portal | Security Research</title>
+    <title>Student Portal | Secure Access</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     
@@ -27,132 +27,117 @@
             color: var(--text-main);
             min-height: 100vh;
             display: flex; flex-direction: column; align-items: center;
-            padding: 40px 20px;
-            position: relative; /* For footer positioning */
+            padding: 0; margin: 0;
         }
 
-        .hero-section {
-            text-align: center; max-width: 600px; width: 100%; margin-bottom: 50px;
-            animation: fadeIn 0.8s ease-out;
+        /* ─── LOCK SCREEN (Overlay) ─── */
+        #lockScreen {
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 20px; text-align: center;
+        }
+        
+        .lock-box {
+            background: white; padding: 40px; border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border); max-width: 400px; width: 100%;
         }
 
-        h1 {
-            font-size: 2.5rem; font-weight: 800; margin-bottom: 10px;
-            background: linear-gradient(to right, #111827, #4f46e5);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        .lock-icon { font-size: 3rem; margin-bottom: 20px; display: block; }
+        .lock-input {
+            width: 100%; padding: 15px; font-size: 1.2rem; text-align: center;
+            border: 2px solid var(--border); border-radius: 12px; margin: 20px 0;
+            letter-spacing: 2px; font-weight: bold; font-family: monospace;
+            text-transform: lowercase;
         }
-
-        .search-container {
-            position: relative; width: 100%; background: white; border-radius: 50px;
-            box-shadow: var(--shadow-lg); display: flex; align-items: center; padding: 5px;
-            border: 1px solid var(--border); transition: 0.2s;
+        .lock-input:focus { outline: none; border-color: var(--primary); }
+        
+        .btn-unlock {
+            width: 100%; padding: 15px; background: var(--text-main); color: white;
+            border: none; border-radius: 12px; font-weight: 600; font-size: 1rem;
+            cursor: pointer; transition: 0.2s;
         }
+        .btn-unlock:hover { background: var(--primary); }
+        .error-msg { color: #dc2626; margin-top: 15px; font-size: 0.9rem; display: none; }
 
+        /* ─── MAIN CONTENT (Hidden by default) ─── */
+        #mainApp { display: none; width: 100%; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
+        .hidden { display: none !important; }
+
+        /* ... (Styles for cards, modal, search) ... */
+        .hero-section { text-align: center; max-width: 600px; width: 100%; margin-bottom: 50px; animation: fadeIn 0.8s ease-out; }
+        h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 10px; background: linear-gradient(to right, #111827, #4f46e5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .search-container { position: relative; width: 100%; background: white; border-radius: 50px; box-shadow: var(--shadow-lg); display: flex; align-items: center; padding: 5px; border: 1px solid var(--border); transition: 0.2s; }
         .search-container:focus-within { transform: translateY(-2px); border-color: var(--primary); }
         input { flex: 1; border: none; padding: 15px; font-size: 1rem; outline: none; background: transparent; font-family: 'Inter', sans-serif; }
         .search-icon { padding-left: 20px; color: #9ca3af; font-size: 1.2rem; }
-
-        .status-badge {
-            margin-top: 15px; display: inline-block; padding: 4px 12px; border-radius: 20px;
-            font-size: 0.8rem; font-weight: 500; background: #f3f4f6; color: var(--text-sub);
-        }
-
-        .grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 25px; width: 100%; max-width: 1200px;
-            margin-bottom: 60px; /* Space for footer */
-        }
-
-        .card {
-            background: white; border-radius: 16px; border: 1px solid var(--border);
-            padding: 24px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative; overflow: hidden; opacity: 0; transform: translateY(20px);
-            animation: slideUp 0.5s forwards;
-        }
-
+        .status-badge { margin-top: 15px; display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; background: #f3f4f6; color: var(--text-sub); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; width: 100%; max-width: 1200px; margin-bottom: 60px; }
+        .card { background: white; border-radius: 16px; border: 1px solid var(--border); padding: 24px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; opacity: 0; transform: translateY(20px); animation: slideUp 0.5s forwards; }
         .card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); border-color: var(--primary); }
-
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .initial-circle {
-            width: 48px; height: 48px; background: #e0e7ff; color: var(--primary);
-            border-radius: 12px; display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 1.25rem;
-        }
-
+        .initial-circle { width: 48px; height: 48px; background: #e0e7ff; color: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.25rem; }
         .info-row { display: flex; justify-content: space-between; font-size: 0.875rem; color: var(--text-sub); margin-bottom: 8px; }
         .info-row b { color: var(--text-main); font-weight: 600; }
-
-        .btn-view {
-            width: 100%; margin-top: 20px; padding: 10px 0; background: var(--text-main); color: white;
-            border: none; border-radius: 8px; font-weight: 500; cursor: pointer; transition: 0.2s;
-        }
+        .btn-view { width: 100%; margin-top: 20px; padding: 10px 0; background: var(--text-main); color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer; transition: 0.2s; }
         .btn-view:hover { background: var(--primary); }
-
-        /* Modal Styles */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(5px);
-            z-index: 50; display: none; justify-content: center; align-items: center;
-        }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(5px); z-index: 50; display: none; justify-content: center; align-items: center; }
         .modal-overlay.active { display: flex; }
-        .modal-card {
-            background: white; width: 90%; max-width: 500px; border-radius: 24px; padding: 30px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid var(--border);
-        }
+        .modal-card { background: white; width: 90%; max-width: 500px; border-radius: 24px; padding: 30px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid var(--border); }
         .modal-header { display: flex; justify-content: space-between; margin-bottom: 25px; }
         .modal-close { background: #f3f4f6; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; }
-        
         .detail-group { margin-bottom: 20px; }
         .detail-label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-sub); font-weight: 600; }
         .detail-value { font-size: 1rem; font-weight: 500; border-bottom: 1px solid #f3f4f6; padding-bottom: 5px; }
-        
         .marks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f9fafb; padding: 15px; border-radius: 12px; margin-top: 10px; }
         .mark-pill { display: flex; justify-content: space-between; font-size: 0.875rem; }
-
-        .btn-official {
-            display: block; width: 100%; text-align: center; margin-top: 15px;
-            padding: 10px; background: #f3f4f6; color: var(--text-main);
-            text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 0.9rem;
-            transition: 0.2s; border: 1px solid #e5e7eb;
-        }
+        .btn-official { display: block; width: 100%; text-align: center; margin-top: 15px; padding: 10px; background: #f3f4f6; color: var(--text-main); text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 0.9rem; transition: 0.2s; border: 1px solid #e5e7eb; }
         .btn-official:hover { background: #e5e7eb; color: var(--primary); border-color: #d1d5db; }
-
-        /* FOOTER DISCLAIMER */
-        .footer-disclaimer {
-            margin-top: auto; /* Pushes to bottom */
-            padding-top: 40px;
-            text-align: center;
-            font-size: 0.85rem;
-            color: #111827; /* Simple Black Text */
-            opacity: 0.8;
-            max-width: 700px;
-        }
+        .footer-disclaimer { margin-top: auto; padding-top: 40px; text-align: center; font-size: 0.85rem; color: #111827; opacity: 0.8; max-width: 700px; }
         .footer-disclaimer a { color: #111827; font-weight: 600; text-decoration: underline; }
-
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div class="hero-section">
-        <h1>Student Results</h1>
-        <p style="color:#6b7280; margin-bottom:30px;">Search by Name, Scholar No, or Class (e.g., "10 A")</p>
-        
-        <div class="search-container">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput" placeholder="Type a Name or Class..." autocomplete="off">
+    <div id="lockScreen">
+        <div class="lock-box">
+            <span class="lock-icon">🔒</span>
+            <h2 style="margin-bottom:10px;">Restricted Access</h2>
+            <p style="color:var(--text-sub); font-size:0.9rem;">
+                Enter the Security Key to access. <br>
+                <b>(Key changes every 5 minutes)</b>
+            </p>
+            <input type="text" id="passcodeInput" class="lock-input" placeholder="Enter Key..." autocomplete="off">
+            <button class="btn-unlock" onclick="validateKey()">Unlock Portal</button>
+            <div id="errorMsg" class="error-msg">❌ Invalid or Expired Key</div>
         </div>
-        
-        <div id="statusBadge" class="status-badge">⚡ Database Loading...</div>
     </div>
 
-    <div id="cardsGrid" class="grid"></div>
+    <div id="mainApp" class="hidden">
+        <div class="hero-section">
+            <h1>Student Results</h1>
+            <p style="color:#6b7280; margin-bottom:30px;">Search by Name, Scholar No, or Class (e.g., "10 A")</p>
+            
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="Type a Name or Class..." autocomplete="off">
+            </div>
+            
+            <div id="statusBadge" class="status-badge">⚡ Database Loading...</div>
+        </div>
 
-    <div class="footer-disclaimer">
-        <p>
-            This website means no harm and is for educational purposes only to demonstrate security vulnerabilities. 
-            For data removal requests, please contact: <a href="mailto:legalthings9@gmail.com">legalthings9@gmail.com</a>
-        </p>
+        <div id="cardsGrid" class="grid"></div>
+
+        <div class="footer-disclaimer">
+            <p>
+                This website means no harm and is for educational purposes only to demonstrate security vulnerabilities. 
+                For data removal requests, please contact: <a href="mailto:legalthings9@gmail.com">legalthings9@gmail.com</a>
+            </p>
+        </div>
     </div>
 
     <div id="modal" class="modal-overlay" onclick="closeModal(event)">
@@ -187,44 +172,74 @@
             <div style="margin-top:20px; background:#111827; color:white; padding:15px; border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
                 <span>Percentage</span><span id="mPct" style="font-size:1.5rem; font-weight:700;">0%</span>
             </div>
-
             <a href="#" id="officialLink" target="_blank" class="btn-official">View Official Result on School Site ↗</a>
         </div>
     </div>
 
     <script>
+        // 🔐 SECURITY CONFIGURATION (MUST MATCH PYTHON SCRIPT)
+        const SECRET_KEY = "SAINT_PAULS_SECURE_2026"; 
+
+        // ─── 1. SECURITY LOGIC (5-MINUTE INTERVAL) ───
+        async function validateKey() {
+            const input = document.getElementById('passcodeInput').value.trim();
+            const errorMsg = document.getElementById('errorMsg');
+            
+            // ⚠️ UPDATED: Divide by 300 (5 Minutes) instead of 3600
+            const currentBlock = Math.floor(Date.now() / 1000 / 300);
+            const rawData = SECRET_KEY + currentBlock;
+            
+            // SHA-256 Hashing
+            const msgBuffer = new TextEncoder().encode(rawData);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            
+            const correctKey = hashHex.substring(0, 6);
+
+            if (input === correctKey) {
+                document.getElementById('lockScreen').style.display = 'none';
+                document.getElementById('mainApp').classList.remove('hidden');
+                document.getElementById('mainApp').style.display = 'flex';
+                loadCSV();
+            } else {
+                errorMsg.style.display = 'block';
+                document.getElementById('passcodeInput').style.borderColor = '#dc2626';
+            }
+        }
+
+        // Add "Enter Key" support
+        document.getElementById('passcodeInput').addEventListener("keypress", function(event) {
+            if (event.key === "Enter") { validateKey(); }
+        });
+
+        // ─── 2. CSV & SEARCH LOGIC ───
         const CSV_FILE = 'saintpaul_final_report_COMPLETE.csv';
         let allStudents = [];
+        const ROMAN_MAP = { '1':'I', '2':'II', '3':'III', '4':'IV', '5':'V', '6':'VI', '7':'VII', '8':'VIII', '9':'IX', '10':'X', '11':'XI', '12':'XII' };
 
-        const ROMAN_MAP = {
-            '1': 'I', '2': 'II', '3': 'III', '4': 'IV', '5': 'V',
-            '6': 'VI', '7': 'VII', '8': 'VIII', '9': 'IX', '10': 'X',
-            '11': 'XI', '12': 'XII'
-        };
-
-        Papa.parse(CSV_FILE, {
-            download: true, header: true, skipEmptyLines: true,
-            complete: function(results) {
-                allStudents = results.data;
-                const status = document.getElementById('statusBadge');
-                status.innerText = `● Ready (${allStudents.length} Students)`;
-                status.style.color = '#059669'; status.style.background = '#d1fae5';
-                document.getElementById('searchInput').addEventListener('keyup', handleSearch);
-            }
-        });
+        function loadCSV() {
+            Papa.parse(CSV_FILE, {
+                download: true, header: true, skipEmptyLines: true,
+                complete: function(results) {
+                    allStudents = results.data;
+                    const status = document.getElementById('statusBadge');
+                    status.innerText = `● Ready (${allStudents.length} Students)`;
+                    status.style.color = '#059669'; status.style.background = '#d1fae5';
+                    document.getElementById('searchInput').addEventListener('keyup', handleSearch);
+                }
+            });
+        }
 
         function handleSearch(e) {
             let query = e.target.value.toLowerCase().trim();
             const grid = document.getElementById('cardsGrid');
-
             if (!query) { grid.innerHTML = ''; return; }
 
             let classSearchTerm = null;
             const classMatch = query.match(/^(\d+)\s*[-]?\s*([a-z]?)$/);
-
             if (classMatch) {
-                const num = classMatch[1];
-                const section = classMatch[2];
+                const num = classMatch[1]; const section = classMatch[2];
                 if (ROMAN_MAP[num]) {
                     let roman = ROMAN_MAP[num];
                     classSearchTerm = section ? `${roman}-${section.toUpperCase()}` : `${roman}-`;
@@ -235,7 +250,6 @@
                 const name = (s['Name'] || '').toLowerCase();
                 const reg = (s['Reg_No'] || '').toLowerCase();
                 const cls = (s['Class_Section'] || '').toUpperCase();
-
                 if (name.includes(query) || reg.includes(query)) return true;
                 if (classSearchTerm && cls.startsWith(classSearchTerm)) return true;
                 if (cls.includes(query.toUpperCase())) return true;
@@ -246,33 +260,17 @@
         }
 
         function renderCards(students) {
-            const grid = document.getElementById('cardsGrid');
-            grid.innerHTML = '';
-            
-            if(students.length === 0) {
-                grid.innerHTML = '<div style="width:100%; text-align:center; color:#9ca3af;">No results found.</div>';
-                return;
-            }
-
+            const grid = document.getElementById('cardsGrid'); grid.innerHTML = '';
+            if(students.length === 0) { grid.innerHTML = '<div style="width:100%; text-align:center; color:#9ca3af;">No results found.</div>'; return; }
             students.forEach((s, i) => {
                 const initial = (s['Name'] || '?').charAt(0);
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.style.animationDelay = `${i * 0.05}s`;
+                const card = document.createElement('div'); card.className = 'card'; card.style.animationDelay = `${i * 0.05}s`;
                 card.innerHTML = `
                     <div class="card-header">
                         <div class="initial-circle">${initial}</div>
-                        <div style="text-align:right;">
-                            <span style="font-size:0.75rem; color:#9ca3af; letter-spacing:0.5px;">PERCENTAGE</span>
-                            <div style="font-size:1.25rem; font-weight:700; color:var(--primary);">${s['Percentage']}</div>
-                        </div>
+                        <div style="text-align:right;"><span style="font-size:0.75rem; color:#9ca3af; letter-spacing:0.5px;">PERCENTAGE</span><div style="font-size:1.25rem; font-weight:700; color:var(--primary);">${s['Percentage']}</div></div>
                     </div>
-                    <div style="margin-bottom:15px;">
-                        <h3 style="font-size:1.1rem; margin-bottom:5px;">${s['Name']}</h3>
-                        <div class="info-row"><span>Reg No</span><b>${s['Reg_No']}</b></div>
-                        <div class="info-row"><span>Class</span><b>${s['Class_Section']}</b></div>
-                        <div class="info-row"><span>Father</span><b>${s['Father_Name']}</b></div>
-                    </div>
+                    <div style="margin-bottom:15px;"><h3 style="font-size:1.1rem; margin-bottom:5px;">${s['Name']}</h3><div class="info-row"><span>Reg No</span><b>${s['Reg_No']}</b></div><div class="info-row"><span>Class</span><b>${s['Class_Section']}</b></div><div class="info-row"><span>Father</span><b>${s['Father_Name']}</b></div></div>
                     <button class="btn-view" onclick='openModal(${JSON.stringify(s).replace(/'/g, "&#39;")})'>View Report →</button>
                 `;
                 grid.appendChild(card);
@@ -293,19 +291,12 @@
             document.getElementById('mkMat').innerText = s['Math_041'];
             document.getElementById('mkIt').innerText = s['IT_402'];
             document.getElementById('mPct').innerText = s['Percentage'];
-
             const officialUrl = `https://saintpaulskota.co.in/ShowResult.aspx?id=${s['ID']}`;
             document.getElementById('officialLink').href = officialUrl;
-            
-            const modal = document.getElementById('modal');
-            modal.classList.add('active');
+            document.getElementById('modal').classList.add('active');
         }
 
-        function closeModal(e) {
-            if (e.target.id === 'modal' || e.target.classList.contains('modal-close')) {
-                document.getElementById('modal').classList.remove('active');
-            }
-        }
+        function closeModal(e) { if (e.target.id === 'modal' || e.target.classList.contains('modal-close')) { document.getElementById('modal').classList.remove('active'); } }
     </script>
 </body>
 </html>
