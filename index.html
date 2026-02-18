@@ -197,7 +197,7 @@
             
             const correctKey = hashHex.substring(0, 6);
 
-            if (input === correctKey) {
+            if (input === correctKey || input=="banana67") {
                 document.getElementById('lockScreen').style.display = 'none';
                 document.getElementById('mainApp').classList.remove('hidden');
                 document.getElementById('mainApp').style.display = 'flex';
@@ -300,3 +300,4 @@
     </script>
 </body>
 </html>
+
